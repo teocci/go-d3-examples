@@ -37,7 +37,7 @@ export default class LineGraph {
 
         if (defined == null) this.defined = (d, i) => !isNaN(this.X[i]) && !isNaN(this.Y[i])
         this.D = d3.map(data, this.defined)
-g
+
         console.log({X: this.X, Y: this.Y, I: this.I, D: this.D})
 
         this.xVar = xVar ?? {}
