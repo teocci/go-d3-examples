@@ -11,6 +11,10 @@ function unserialize(s) {
     return JSON.parse(s)
 }
 
+function simpleMerge(...objects) {
+    return objects.reduce((p, o) => ({...p, ...o}), {})
+}
+
 function addPadding(n, length = null) {
     return String(n).padStart(length ?? 2, '0')
 }
