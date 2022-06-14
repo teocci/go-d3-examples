@@ -2,6 +2,7 @@
  * Created by RTT.
  * Author: teocci@yandex.com on 2022-6월-13
  */
+import * as d3 from 'https://cdn.skypack.dev/d3@7'
 
 export default class D3Graph {
     static DEFAULT_MARGIN = {top: 20, right: 30, bottom: 30, left: 50}
@@ -9,49 +10,59 @@ export default class D3Graph {
     static DEFAULT_HEIGHT = 400 // outer height, in pixels
 
     static DEFAULT_X_VAR = {
-        type: d3.scaleUtc,
-        domain: null,
+        mapper: ([x]) => x, // given d in data, returns the (quantitative) x-value
+        type: d3.scaleLinear, // type of x-scale
+        domain: null, // [xmin, xmax]
         range: [D3Graph.DEFAULT_MARGIN.left, D3Graph.DEFAULT_WIDTH - D3Graph.DEFAULT_MARGIN.right], // [left, right]
+        scale: null, // function to compute x-scale
+        axis: null, // function to compute x-axis ticks
+        sort: null, // function to short x-values
+        label: null, // a label for the x-axis
+        format: null, // a format specifier string for the x-axis
     }
 
     static DEFAULT_Y_VAR = {
+        mapper: ([, y]) => y, // given d in data, returns the (quantitative) y-value
         type: d3.scaleLinear, // the y-scale type
         domain: null, // [ymin, ymax]
         range: [D3Graph.DEFAULT_HEIGHT - D3Graph.DEFAULT_MARGIN.bottom, D3Graph.DEFAULT_MARGIN.top], // [bottom, top]
+        scale: null, // function to compute y-scale
+        axis: null, // function to compute y-axis ticks
+        sort: null, // function to short y-values
+        label: null, // a label for the y-axis
         format: null, // a format specifier string for the y-axis
-        label: null, // 1a label for the y-axis
     }
 
-    static DEFAULT_STROKE = {
-        color: 'currentColor',
-        lineCap: 'round',
-        lineJoin: 'round',
-        width: 1.5,
-        opacity: 1
-    }
-
-    constructor(defined, margin, width, height) {
+    constructor(margin, width, height) {
         this.X = null
         this.Y = null
         this.I = null
-        this.D = null
-
-        this.defined = defined ?? null
 
         this.margin = this.simpleMerge(D3Graph.DEFAULT_MARGIN, margin)
-        this.plot = {
-            width: width - this.margin.left - this.margin.right,
-            height: height - this.margin.top - this.margin.bottom,
-        }
 
         this.width = width ?? D3Graph.DEFAULT_WIDTH
-        this.height = height ?? D3Graph.DEFAULT_HEIGHT
+        this.height = height ?? width ?? D3Graph.DEFAULT_HEIGHT
+
+        this.plot = {
+            width: this.width - this.margin.left - this.margin.right,
+            height: this.height - this.margin.top - this.margin.bottom,
+        }
 
         this.x = D3Graph.DEFAULT_X_VAR
         this.y = D3Graph.DEFAULT_Y_VAR
 
         this.x.range = [this.margin.left, this.width - this.margin.right]
         this.y.range = [this.height - this.margin.bottom, this.margin.top]
+
+    }
+
+    initToggle(svg) {
+        this.tooltip = svg.append('g')
+            .style('pointer-events', 'none')
+    }
+
+    async loadCSV(url) {
+        await this.loadFromURL(url)
     }
 
     async loadFromURL(url) {
@@ -66,25 +77,46 @@ export default class D3Graph {
         this.X = d3.map(data, this.x.mapper)
         this.Y = d3.map(data, this.y.mapper)
         this.I = d3.range(this.X.length)
-
-        if (this.defined == null) this.defined = (d, i) => !isNaN(this.X[i]) && !isNaN(this.Y[i])
-        this.D = d3.map(data, this.defined)
-
-        console.log({X: this.X, Y: this.Y, I: this.I, D: this.D})
-
-        // Compute default domains.
-        if (this.x?.domain == null) this.x.domain = d3.extent(this.X)
-        if (this.y?.domain == null) this.y.domain = [0, d3.max(this.Y)]
-
-        // Construct scales and axes.
-        this.xScale = this.x.type(this.x.domain, this.x.range)
-        this.yScale = this.y.type(this.y.domain, this.y.range)
-
-        this.xAxis = d3.axisBottom(this.xScale).ticks(this.width / 80).tickSizeOuter(0)
-        this.yAxis = d3.axisLeft(this.yScale).ticks(this.height / 40, this.y.format)
     }
 
     simpleMerge(...objects) {
         return objects.reduce((p, o) => ({...p, ...o}), {})
+    }
+
+    mergeOptions(...objects) {
+        const extended = {}
+        const length = objects.length
+        let deep = false
+        let i = 0
+
+        // Check if a deep merge
+        const isBoolean = b => 'boolean' === typeof b
+        if (isBoolean(objects[0])) {
+            deep = objects[0]
+            i++
+        }
+
+        // Loop through each object and conduct a merge
+        for (; i < length; i++) {
+            const object = objects[i]
+            this.mergeObject(extended, object, deep)
+        }
+
+        return extended
+    }
+
+    // Merge the object into the extended object
+    mergeObject(extended, object, deep) {
+        for (const prop in object) {
+            if (object.hasOwnProperty(prop)) {
+                // If deep merge and property is an object, merge properties
+                const isObject = o => o?.constructor === Object
+                if (deep && isObject(object[prop])) {
+                    extended[prop] = this.mergeOptions(true, extended[prop], object[prop])
+                } else {
+                    extended[prop] = object[prop]
+                }
+            }
+        }
     }
 }

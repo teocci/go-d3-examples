@@ -3,37 +3,26 @@
  * Author: teocci@yandex.com on 2022-6월-10
  */
 
-function serialize(o) {
-    return JSON.stringify(o)
-}
 
-function unserialize(s) {
-    return JSON.parse(s)
-}
+const isBoolean = b => 'boolean' === typeof b
 
-function simpleMerge(...objects) {
-    return objects.reduce((p, o) => ({...p, ...o}), {})
-}
+const serialize = o => JSON.stringify(o)
 
-function addPadding(n, length = null) {
-    return String(n).padStart(length ?? 2, '0')
-}
+const unserialize = s => JSON.parse(s)
+
+const simpleMerge = (...objects) => objects.reduce((p, o) => ({...p, ...o}), {})
+
+const rand = (min, max) => Math.random() * (max - min) + min
+
+const truncate = (n, p) => Math.trunc(n * Math.pow(10, p)) / Math.pow(10, p)
+
+const round = (n, p) => Math.trunc((n + Number.EPSILON) * Math.pow(10, p)) / Math.pow(10, p)
+
+const addPadding = (n, length = null) => String(n).padStart(length ?? 2, '0')
 
 function serializeDate() {
     const now = new Date()
     return `${now.getFullYear()}${addPadding(now.getMonth() + 1)}${addPadding(now.getDate())}${addPadding(now.getHours())}${addPadding(now.getMinutes())}`
-}
-
-function rand(min, max) {
-    return Math.random() * (max - min) + min
-}
-
-function truncate(n, p) {
-    return Math.trunc(n * Math.pow(10, p)) / Math.pow(10, p)
-}
-
-function round(n, p) {
-    return Math.trunc((n + Number.EPSILON) * Math.pow(10, p)) / Math.pow(10, p)
 }
 
 function distanceFormatter(d, precision = 2) {
