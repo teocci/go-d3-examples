@@ -6,6 +6,7 @@ import LineGraph from '../plotter/line-graph.js'
 import BarGraph from '../plotter/bar-graph.js'
 import BubbleGraph from '../plotter/bubble-graph.js'
 import ScatterGraph from '../plotter/scatter-graph.js'
+import ContourGraph from '../plotter/contour-graph.js'
 
 export default class WidgetModule {
     static CHART_LIST = [
@@ -13,6 +14,7 @@ export default class WidgetModule {
         {type: BarGraph.TAG, url: ALPHABET_URL},
         {type: BubbleGraph.TAG, url: FLARE_URL},
         {type: ScatterGraph.TAG, url: DRIVING_URL},
+        {type: ContourGraph.TAG, url: FAITHFUL_URL},
     ]
 
     static get instance() {
@@ -44,7 +46,7 @@ export default class WidgetModule {
                         y: {mapper: d => d.close, label: '↑ Daily close ($)',},
                         width: 720,
                         height: 480,
-                        line: {stroke: {color: 'blue',},},
+                        line: {stroke: {color: '#36a2eb',},},
                     })
                     break
                 case BarGraph.TAG:
@@ -64,7 +66,7 @@ export default class WidgetModule {
                     break
                 case BubbleGraph.TAG:
                     chart = new BubbleGraph(null, {
-                        width: 1152,
+                        width: 720,
                         bubble: {
                             label: d => [...d.id.split('.').pop().split(/(?=[A-Z][a-z])/g), d.value.toLocaleString('en')].join('\n'),
                             value: d => d.value,
@@ -84,11 +86,31 @@ export default class WidgetModule {
                             label: '↑ Price of gas (per gallon, adjusted average $)',
                             format: '.2f',
                         },
-                        width: 1200,
-                        height: 720,
+                        width: 720,
+                        height: 480,
                         scatter: {
                             title: d => d.year,
-                            stroke: {color: 'steelblue'}
+                            stroke: {color: '#36a2eb'}
+                        },
+                    })
+                    break
+                case ContourGraph.TAG:
+                    chart = new ContourGraph(null, {
+                        x: {
+                            mapper: d => d.waiting,
+                            label: "Idle (min.) →",
+                        },
+                        y: {
+                            mapper: d => d.eruptions,
+                            label: '↑ Erupting (min.)',
+                        },
+                        width: 720,
+                        height: 480,
+                        contour: {
+                            stroke: {
+                                color: 'black',
+                                linejoin: 'round',
+                            }
                         },
                     })
                     break

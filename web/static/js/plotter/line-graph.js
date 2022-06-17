@@ -59,13 +59,10 @@ export default class LineGraph extends D3Graph {
         console.log({X: this.X, Y: this.Y, I: this.I, D: this.D})
 
         // Compute default domains.
-        if (this.x?.domain == null) this.x.domain = d3.extent(this.X)
-        if (this.y?.domain == null) this.y.domain = [0, d3.max(this.Y)]
+        if (this.x.domain == null) this.x.domain = d3.extent(this.X)
+        if (this.y.domain == null) this.y.domain = [0, d3.max(this.Y)]
 
-        // Construct scales and axes.
-        this.x.scale = this.x.type(this.x.domain, this.x.range)
-        this.y.scale = this.y.type(this.y.domain, this.y.range)
-
+        // Construct  axes.
         this.x.axis = d3.axisBottom(this.x.scale).ticks(this.width / 80).tickSizeOuter(0)
         this.y.axis = d3.axisLeft(this.y.scale).ticks(this.height / 40, this.y.format)
 
@@ -110,7 +107,6 @@ export default class LineGraph extends D3Graph {
             .attr('class', 'x axis')
             .attr('transform', `translate(0,${this.plot.height + this.margin.top})`)
             .call(this.x.axis)
-            .call(g => g.select('.domain').remove())
 
         this.svg.append('g')
             .attr('class', 'y axis')

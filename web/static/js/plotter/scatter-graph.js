@@ -69,16 +69,6 @@ export default class ScatterGraph extends D3Graph {
         this.T = this.scatter.title == null ? null : d3.map(data, this.scatter.title)
         this.I = d3.range(this.X.length).filter(i => !isNaN(this.X[i]) && !isNaN(this.Y[i]))
 
-        console.log({X: this.X, Y: this.Y, I: this.I})
-
-        // Compute default domains.
-        if (this.x.domain == null) this.x.domain = d3.extent(this.X)
-        if (this.y.domain == null) this.y.domain = d3.extent(this.Y)
-
-        // Construct scales and axes.
-        this.x.scale = this.x.type(this.x.domain, this.x.range)
-        this.y.scale = this.y.type(this.y.domain, this.y.range)
-
         this.x.axis = d3.axisBottom(this.x.scale).ticks(this.width / 80, this.x.format)
         this.y.axis = d3.axisLeft(this.y.scale).ticks(this.height / 50, this.y.format)
     }
@@ -93,7 +83,6 @@ export default class ScatterGraph extends D3Graph {
             .attr('height', this.height)
             .attr('viewBox', [0, 0, this.width, this.height])
             .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
-
 
         svg.append('g')
             .attr('transform', `translate(0,${this.height - this.margin.bottom})`)

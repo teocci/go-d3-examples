@@ -77,6 +77,19 @@ export default class D3Graph {
         this.X = d3.map(data, this.x.mapper)
         this.Y = d3.map(data, this.y.mapper)
         this.I = d3.range(this.X.length)
+
+        console.log({X: this.X, Y: this.Y, I: this.I})
+
+        // Compute default domains.
+        if (this.x.domain == null) this.x.domain = d3.extent(this.X)
+        if (this.y.domain == null) this.y.domain = d3.extent(this.Y)
+
+        // Construct scales and axes.
+        this.x.scale = this.x.type(this.x.domain, this.x.range)
+        this.y.scale = this.y.type(this.y.domain, this.y.range)
+
+        this.x.axis = d3.axisBottom(this.x.scale).tickSizeOuter(0)
+        this.y.axis = d3.axisLeft(this.y.scale).tickSizeOuter(0)
     }
 
     simpleMerge(...objects) {
