@@ -7,14 +7,6 @@ import D3Graph from './d3-graph.js'
 export default class LineGraph extends D3Graph {
     static TAG = 'line'
 
-    static DEFAULT_STROKE = {
-        color: 'currentColor',
-        lineCap: 'round',
-        lineJoin: 'round',
-        width: 1.5,
-        opacity: 1,
-    }
-
     static DEFAULT_LINE = {
         title: null,
         defined: null,
@@ -60,22 +52,13 @@ export default class LineGraph extends D3Graph {
 
         // Compute default domains.
         if (this.x.domain == null) this.x.domain = d3.extent(this.X)
-        if (this.y.domain == null) this.y.domain = [0, d3.max(this.Y)]
+        if (this.y.domain == null) this.y.domain = [-100, d3.max(this.Y)]
 
-        // Construct  axes.
+        this.constructScales()
+
+        // Construct axes.
         this.x.axis = d3.axisBottom(this.x.scale).ticks(this.width / 80).tickSizeOuter(0)
-        this.y.axis = d3.axisLeft(this.y.scale).ticks(this.height / 40, this.y.format)
-
-        // Compute titles.
-        if (this.line.title == null) {
-            const formatDate = this.x.scale.tickFormat(null, '%b %-d, %Y')
-            const formatValue = this.y.scale.tickFormat(100, this.y.format)
-            this.line.title = i => `${formatDate(this.X[i])}\n${formatValue(this.Y[i])}`
-        } else {
-            this.O = d3.map(data, d => d)
-            this.T = this.line.title
-            this.line.title = i => this.T(this.O[i], i, data)
-        }
+        this.y.axis = d3.axisLeft(this.y.scale).ticks(this.height / 40, this.y.format).tickSizeOuter(0)
     }
 
     async loadCSV(url) {
@@ -83,45 +66,26 @@ export default class LineGraph extends D3Graph {
     }
 
     render() {
+        this.createMainSVG()
+
+        this.renderXAxes()
+        this.renderYAxes()
+
+        this.renderChart()
+
+        this.initToggle()
+
+        return this.svg.node()
+    }
+
+
+    renderChart() {
         // Construct a line generator.
         const line = d3.line()
             .curve(this.line.curve)
             .defined(i => this.D[i])
             .x(i => this.x.scale(this.X[i]))
             .y(i => this.y.scale(this.Y[i]))
-
-        this.svg = d3.create('svg')
-            .attr('width', this.width)
-            .attr('height', this.height)
-            .attr('viewBox', [0, 0, this.width, this.height])
-            .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
-            .attr('font-family', 'sans-serif')
-            .attr('font-size', 10)
-            .style('-webkit-tap-highlight-color', 'transparent')
-            .style('overflow', 'visible')
-            .on('pointerenter pointermove', e => this.pointerMoved(e))
-            .on('pointerleave', e => this.pointerLeft())
-            .on('touchstart', e => e.preventDefault())
-
-        this.svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', `translate(0,${this.plot.height + this.margin.top})`)
-            .call(this.x.axis)
-
-        this.svg.append('g')
-            .attr('class', 'y axis')
-            .attr('transform', `translate(${this.margin.left}, 0)`)
-            .call(this.y.axis)
-            .call(g => g.select('.domain').remove())
-            .call(g => g.selectAll('.tick line').clone()
-                .attr('x2', this.plot.width)
-                .attr('stroke-opacity', 0.1))
-            .call(g => g.append('text')
-                .attr('x', -this.margin.left)
-                .attr('y', 10)
-                .attr('fill', 'currentColor')
-                .attr('text-anchor', 'start')
-                .text(this.y.label))
 
         this.svg.append('path')
             .attr('fill', 'none')
@@ -131,10 +95,9 @@ export default class LineGraph extends D3Graph {
             .attr('stroke-linejoin', this.line.stroke.lineJoin)
             .attr('stroke-opacity', this.line.stroke.opacity)
             .attr('d', line(this.I))
-
-        this.initToggle(this.svg)
-
-        return this.svg.node()
+            .on('pointerenter pointermove', e => this.pointerMoved(e))
+            .on('pointerleave', e => this.pointerLeft())
+            .on('touchstart', e => e.preventDefault())
     }
 
     pointerMoved(event) {
@@ -153,7 +116,7 @@ export default class LineGraph extends D3Graph {
             .join('text')
             .call(text => text
                 .selectAll('tspan')
-                .data(`${this.line.title(i)}`.split(/\n/))
+                .data(`${this.chart.title(i)}`.split(/\n/))
                 .join('tspan')
                 .attr('x', 0)
                 .attr('y', (_, i) => `${i * 1.1}em`)

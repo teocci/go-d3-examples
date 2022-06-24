@@ -61,28 +61,20 @@ export default class BarGraph extends D3Graph {
     }
 
     render() {
-        const svg = d3.create('svg')
-            .attr('width', this.width)
-            .attr('height', this.height)
-            .attr('viewBox', [0, 0, this.width, this.height])
-            .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
+        this.createMainSVG()
 
-        svg.append('g')
-            .attr('transform', `translate(${this.margin.left},0)`)
-            .call(this.y.axis)
-            .call(g => g.select('.domain').remove())
-            .call(g => g.selectAll('.tick line').clone()
-                .attr('x2', this.plot.width)
-                .attr('stroke-opacity', 0.1))
-            .call(g => g.append('text')
-                .attr('x', -this.margin.left)
-                .attr('y', 10)
-                .attr('fill', 'currentColor')
-                .attr('text-anchor', 'start')
-                .text(this.y.label))
+        this.renderXAxes()
+        this.renderYAxes()
+
+        this.renderChart()
+
+        return this.svg.node()
+    }
 
 
-        const bar = svg.append('g')
+    renderChart() {
+
+        const bar = this.svg.append('g')
             .attr('fill', this.bar.color)
             .selectAll('rect')
             .data(this.I)
@@ -94,10 +86,9 @@ export default class BarGraph extends D3Graph {
 
         if (this.bar.title) bar.append('title').text(this.bar.title)
 
-        svg.append('g')
+
+        this.svg.append('g')
             .attr('transform', `translate(0,${this.height - this.margin.bottom})`)
             .call(this.x.axis);
-
-        return svg.node()
     }
 }

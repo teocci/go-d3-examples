@@ -12,7 +12,7 @@ export default class WidgetModule {
     static CHART_LIST = [
         {type: LineGraph.TAG, url: AAPL_URL},
         {type: BarGraph.TAG, url: ALPHABET_URL},
-        {type: BubbleGraph.TAG, url: FLARE_URL},
+        {type: BubbleGraph.TAG, url: COUNTRIES_URL},
         {type: ScatterGraph.TAG, url: DRIVING_URL},
         {type: ContourGraph.TAG, url: FAITHFUL_URL},
     ]
@@ -61,17 +61,25 @@ export default class WidgetModule {
                         y: {mapper: d => d.frequency, label: '↑ Frequency', format: '%',},
                         width: 720,
                         height: 480,
-                        bar: {color: 'blue',},
+                        bar: {color: '#36a2eb',},
                     })
                     break
                 case BubbleGraph.TAG:
                     chart = new BubbleGraph(null, {
+                        x: {
+                            mapper: d => d.gdp,
+                            label: "GDP per capita →",
+                        },
+                        y: {
+                            mapper: d => d.life,
+                            label: '↑ Life expectancy (years)',
+                        },
                         width: 720,
+                        height: 480,
                         bubble: {
-                            label: d => [...d.id.split('.').pop().split(/(?=[A-Z][a-z])/g), d.value.toLocaleString('en')].join('\n'),
-                            value: d => d.value,
-                            group: d => d.id.split('.')[1],
-                            title: d => `${d.id}\n${d.value.toLocaleString('en')}`,
+                            mapper: d => d.population,
+                            group: d => d.continent,
+                            title: d => `${d.country}`,
                         },
                     })
                     break
