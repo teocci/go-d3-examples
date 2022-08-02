@@ -6,12 +6,13 @@ package webserver
 import (
 	"embed"
 	"fmt"
-	"github.com/teocci/go-d3-examples/src/config"
 	"log"
 	"mime"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/teocci/go-d3-examples/src/config"
 )
 
 const (
