@@ -24,16 +24,61 @@ export default class WidgetModule {
     }
 
     constructor(element) {
-        this.placeholder = element ?? null
+        this.$holder = element ?? null
 
         this.charts = new Map()
 
         this.initElements()
+        this.initListeners()
         this.initCharts()
     }
 
     initElements() {
-        this.placeholder = document.getElementById('plot')
+        this.$holder = document.getElementById('plot')
+        this.$btnDAll = document.getElementById('btn-dall-png')
+    }
+
+    initListeners() {
+        this.$btnDAll.onclick = () => {
+            const items = [...document.querySelectorAll('svg')]
+
+            for (const item of items) {
+                const svg = item.cloneNode(true) // clone your original svg
+                svg.setAttribute('width', item.clientWidth) // set svg to be the g dimensions
+                svg.setAttribute('height', item.clientHeight)
+
+                const svgAsXML = (new XMLSerializer).serializeToString(svg)
+                const svgURI = `data:image/svg+xml,${encodeURIComponent(svgAsXML)}`
+                // const svgURI = `data:image/svg+xml;base64,${btoa(svgAsXML)}`
+                const output = {'name': 'chart-image.png', 'width': item.clientWidth, 'height': item.clientHeight}
+
+                const img = new Image()
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    [canvas.width, canvas.height] = [output.width, output.height]
+                    const ctx = canvas.getContext('2d')
+                    ctx.drawImage(img, 0, 0, output.width, output.height)
+
+                    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingQuality
+                    const a = document.createElement('a')
+                    const quality = 1.0
+                    a.style.setProperty('display', 'none')
+                    a.href = canvas.toDataURL('image/png', quality)
+                    a.download = output.name
+                    a.append(canvas)
+                    a.click()
+                    a.remove()
+                }
+                img.src = svgURI
+            }
+
+            // const link = document.createElement('a')
+            // link.style.setProperty('display', 'none')
+            // document.body.appendChild(link)
+            // link.setAttribute('href', svgData)
+            // link.setAttribute('download', 'image.svg')
+            // link.click()
+        }
     }
 
     initCharts() {
@@ -43,10 +88,10 @@ export default class WidgetModule {
                 case LineGraph.TAG:
                     chart = new LineGraph(null, {
                         x: {mapper: d => d.date},
-                        y: {mapper: d => d.close, label: '↑ Daily close ($)',},
-                        width: 720,
-                        height: 480,
-                        line: {stroke: {color: '#36a2eb',},},
+                        y: {mapper: d => d.close, label: '↑ 일일 마감($)'},
+                        width: 1440,
+                        height: 960,
+                        line: {stroke: {color: '#36a2eb'}},
                     })
                     break
                 case BarGraph.TAG:
@@ -55,27 +100,27 @@ export default class WidgetModule {
                             mapper: d => d.letter,
                             sort: {
                                 reducer: ([d]) => -d.frequency,
-                                indexer: d => d.letter
+                                indexer: d => d.letter,
                             },
                         },
-                        y: {mapper: d => d.frequency, label: '↑ Frequency', format: '%',},
-                        width: 720,
-                        height: 480,
-                        bar: {color: '#36a2eb',},
+                        y: {mapper: d => d.frequency, label: '↑ 빈도', format: '%'},
+                        width: 1440,
+                        height: 960,
+                        bar: {color: '#36a2eb'},
                     })
                     break
                 case BubbleGraph.TAG:
                     chart = new BubbleGraph(null, {
                         x: {
                             mapper: d => d.gdp,
-                            label: "GDP per capita →",
+                            label: '1인당 GDP →',
                         },
                         y: {
                             mapper: d => d.life,
-                            label: '↑ Life expectancy (years)',
+                            label: '↑ 기대 수명(년)',
                         },
-                        width: 720,
-                        height: 480,
+                        width: 1440,
+                        height: 960,
                         bubble: {
                             mapper: d => d.population,
                             group: d => d.continent,
@@ -87,18 +132,18 @@ export default class WidgetModule {
                     chart = new ScatterGraph(null, {
                         x: {
                             mapper: d => d.miles,
-                            label: "Miles driven (per capita per year) →",
+                            label: '주행 마일(1인당 연간) →',
                         },
                         y: {
                             mapper: d => d.gas,
-                            label: '↑ Price of gas (per gallon, adjusted average $)',
+                            label: '↑ 가스 가격(갤런당, 조정된 평균 $)',
                             format: '.2f',
                         },
-                        width: 720,
-                        height: 480,
+                        width: 1440,
+                        height: 960,
                         scatter: {
                             title: d => d.year,
-                            stroke: {color: '#36a2eb'}
+                            stroke: {color: '#36a2eb'},
                         },
                     })
                     break
@@ -106,19 +151,19 @@ export default class WidgetModule {
                     chart = new ContourGraph(null, {
                         x: {
                             mapper: d => d.waiting,
-                            label: "Idle (min.) →",
+                            label: '유휴(최소) →',
                         },
                         y: {
                             mapper: d => d.eruptions,
-                            label: '↑ Erupting (min.)',
+                            label: '↑ 분출(최소)',
                         },
-                        width: 720,
-                        height: 480,
+                        width: 1440,
+                        height: 960,
                         contour: {
                             stroke: {
                                 color: 'black',
                                 linejoin: 'round',
-                            }
+                            },
                         },
                     })
                     break
@@ -139,6 +184,6 @@ export default class WidgetModule {
         const node = chart.render()
         console.log(`Rendering done: ${chart.type}`)
 
-        this.placeholder.appendChild(node)
+        this.$holder.appendChild(node)
     }
 }
